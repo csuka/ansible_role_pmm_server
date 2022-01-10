@@ -1,0 +1,17 @@
+---
+- name: certs | ensure certs dir exists
+  file:
+    path: "{{ pmm_certs_dir }}"
+    mode: '0600'
+    owner: root
+    group: root
+    state: directory
+
+- name: certs | ensure ssl key and crt exists
+  args:
+    creates: "{{ pmm_certs_dir }}server.crt"
+  shell: >
+    openssl req -x509 -subj '/C=/ST=/L=/O=IT/CN={{ ansible_fqdn }}'
+    -nodes -days 3650 -newkey rsa:2048
+    -keyout {{ pmm_certs_dir }}server.key
+    -out {{ pmm_certs_dir }}server.crt

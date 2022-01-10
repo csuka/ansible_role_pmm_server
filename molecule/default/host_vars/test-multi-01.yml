@@ -1,0 +1,4 @@
+---
+pmm_server_pass: something_else
+pmm_docker_users:
+  - my-user

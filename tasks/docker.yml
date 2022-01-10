@@ -1,0 +1,43 @@
+---
+- name: docker | ensure firewalld is stopped
+  systemd:
+    name: firewalld
+    state: stopped
+
+- name: docker | ensure RPM GPG key is set
+  rpm_key:
+    key: https://download.docker.com/linux/centos/gpg
+
+- name: docker | ensure repo is set
+  get_url:
+    url: "{{ pmm_docker_url }}"
+    dest: /etc/yum.repos.d/docker-ce.repo
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: docker | ensure python3 and docker-ce are installed
+  dnf:
+    name: "{{ item }}"
+  loop:
+    - python3
+    - docker-ce
+
+- name: docker | ensure docker-py is installed via pip3
+  pip:
+    executable: pip3
+    name: docker-py
+
+- name: docker | ensure docker is started and enabled
+  systemd:
+    name: docker
+    state: started
+    enabled: true
+
+- name: docker | ensure docker users are added to the docker group
+  user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  loop: "{{ pmm_docker_users }}"
+  when: pmm_docker_users | length > 0

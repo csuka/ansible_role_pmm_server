@@ -1,0 +1,6 @@
+---
+skip_list:
+  - '305'
+  - '403'
+  - no-handler
+  - risky-shell-pipe

@@ -1,0 +1,109 @@
+---
+- block:
+
+    - name: container | ensure data container is set
+      docker_container:
+        name: pmm-data
+        image: "percona/pmm-server:{{ pmm_server_version }}"
+        state: present
+        container_default_behavior: compatibility
+        volumes:
+          - /opt/prometheus/data
+          - /opt/consul-data
+          - /var/lib/mysql
+          - /var/lib/grafana
+        command: /bin/true
+
+    - name: container | ensure pmm-server runs
+      docker_container:
+        name: pmm-server
+        image: "percona/pmm-server:{{ pmm_server_version }}"
+        state: started
+        container_default_behavior: compatibility
+        # env:
+        #   SERVER_USER: "{{ pmm_server_user }}"
+        #   SERVER_PASSWORD: "{{ pmm_server_pass }}"
+        volumes:
+          - '{{ pmm_certs_dir }}:/etc/nginx/ssl'
+        volumes_from:
+          - pmm-data
+        ports:
+          - "80:80"
+          - "443:443"
+        restart_policy: always
+      register: run_pmm_container
+
+  when: ansible_version.minor >= 10 | int
+
+- block:
+
+    - name: container | ensure data container is set
+      docker_container:
+        name: pmm-data
+        image: "percona/pmm-server:{{ pmm_server_version }}"
+        state: present
+        volumes:
+          - /opt/prometheus/data
+          - /opt/consul-data
+          - /var/lib/mysql
+          - /var/lib/grafana
+        command: /bin/true
+
+    - name: container | ensure pmm-server runs for ansible v2.9 or lower
+      docker_container:
+        name: pmm-server
+        image: "percona/pmm-server:{{ pmm_server_version }}"
+        state: started
+        # env:
+        #   SERVER_USER: "{{ pmm_server_user }}"
+        #   SERVER_PASSWORD: "{{ pmm_server_pass }}"
+        volumes:
+          - '{{ pmm_certs_dir }}:/etc/nginx/ssl'
+        volumes_from:
+          - pmm-data
+        ports:
+          - "80:80"
+          - "443:443"
+        restart_policy: always
+      register: run_pmm_container
+
+  when: 9 <= ansible_version.minor | int
+
+# The tasks are too fast, so a pause is required...
+# - name: container | wait for the container to start
+#   wait_for:
+#     connect_timeout: 3
+#     port: 443
+#     timeout: 20
+
+- name: container | wait 10s when pmm-server changed
+  pause:
+    seconds: 10
+  when: run_pmm_container.changed
+
+- name: container | verify login
+  shell: "curl admin:{{ pmm_server_pass }}@localhost/api"
+  register: verify_login
+  changed_when: false
+  no_log: true
+  args:
+    warn: false
+
+- name: container | set password when we cannot login
+  shell: >-
+    docker exec -t pmm-server
+    bash -c
+    'ln -s /srv/grafana /usr/share/grafana/data ;
+    grafana-cli --homepath /usr/share/grafana admin
+    reset-admin-password {{ pmm_server_pass }}'
+  when: "'Invalid username or password' in verify_login.stdout_lines[0]"
+  no_log: true
+
+- name: container | verify login again
+  shell: "curl admin:{{ pmm_server_pass }}@localhost/api"
+  register: verify_another_login
+  no_log: true
+  changed_when: false
+  failed_when: "'Invalid username or' in verify_another_login.stdout_lines[0]"
+  args:
+    warn: false

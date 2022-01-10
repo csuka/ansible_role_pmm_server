@@ -1,0 +1,13 @@
+---
+- name: main | assert that password is changed
+  assert:
+    that: "'admin' not in pmm_server_pass"
+
+- include_tasks: docker.yml
+  tags: docker
+
+- include_tasks: certs.yml
+  tags: certs
+
+- include_tasks: container.yml
+  tags: container
