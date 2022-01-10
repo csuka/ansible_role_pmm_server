@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: Kevin Csuka
+  description: An Ansible role to install and configure PMM Server 2
+  namespace: kcsuka
+  role_name: baseline
+  license: Apache License, Version 2.0
+  min_ansible_version: 2.9
+  platforms:
+    - name: EL
+      versions:
+        - 8
+  galaxy_tags:
+    - management
+    - pmm
+    - server
+    - percona
+    - monitoring
+    - database
+
+dependencies: []
