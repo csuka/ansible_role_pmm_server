@@ -26,10 +26,10 @@ molecule:
     - docker
   script:
     - python3 -V
-    - python3 -m pip install ansible-lint
-    - python3 -m pip install flake8 yamllint
-    - yamllint ./
+    - python3 -m pip install ansible flake8 ansible-lint
+    - python3 -m pip install yamllint
     - ansible-lint ./
+    - yamllint ./
   except:
     changes:
       - README.md

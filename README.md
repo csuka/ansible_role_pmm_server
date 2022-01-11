@@ -1,6 +1,6 @@
 # PMM Server
 
-This role installs PMM Server 2 on Docker-ce for EL 8.
+An Ansible role that installs, configures and manages PMM-Server 2 for EL 8.
 
 Firewalld
 ---------
