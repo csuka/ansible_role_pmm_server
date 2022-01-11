@@ -3,6 +3,7 @@
   systemd:
     name: firewalld
     state: stopped
+  tags: molecule-notest
 
 - name: docker | ensure RPM GPG key is set
   rpm_key:

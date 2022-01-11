@@ -25,15 +25,11 @@ molecule:
   tags:
     - docker
   script:
-    - docker -v
     - python3 -V
-    - python3 -m pip install ansible ansible-lint
-    - python3 -m pip install flake8 molecule yamllint requests
-    - python3 -m pip install docker docker-compose
-    - python3 -m pip install "molecule[docker]"
-    - ansible --version
-    - molecule --version
-    - molecule test -s default
+    - python3 -m pip install ansible-lint
+    - python3 -m pip install flake8 yamllint
+    - yamllint ./
+    - ansible-lint ./
   except:
     changes:
       - README.md
